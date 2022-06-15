@@ -8,10 +8,10 @@ public class Torrent {
     public string Id { get; init; } = null!;
 
     [Required, MaxLength(255)]
-    public string Name { get; init; } = null!;
+    public string Name { get; set; } = null!;
 
     [Required]
-    public string[] Trackers { get; init; } = null!;
+    public string[] Trackers { get; set; } = null!;
     
     [Required]
     public DateTime CreatedAt { get; init; }

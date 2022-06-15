@@ -72,6 +72,8 @@ public class FloodJob : IJob {
         var existingTorrent = await _storageContext.Torrents
             .SingleOrDefaultAsync(model => string.Equals(model.Id, properties.Hash));
         if (existingTorrent != null) {
+            existingTorrent.Name = properties.Name!;
+            existingTorrent.Trackers = properties.TrackerUris!.ToArray();
             return existingTorrent;
         }
 
