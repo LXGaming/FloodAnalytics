@@ -3,7 +3,6 @@ using LXGaming.FloodAnalytics.Services.Flood.Models;
 using LXGaming.FloodAnalytics.Services.Quartz;
 using LXGaming.FloodAnalytics.Storage;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Jobs; 
@@ -14,12 +13,10 @@ public class FloodJob : IJob {
     public const string TorrentsKey = "torrents";
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
     private readonly FloodService _floodService;
-    private readonly ILogger<FloodJob> _logger;
     private readonly StorageContext _storageContext;
 
-    public FloodJob(FloodService floodService, ILogger<FloodJob> logger, StorageContext storageContext) {
+    public FloodJob(FloodService floodService, StorageContext storageContext) {
         _floodService = floodService;
-        _logger = logger;
         _storageContext = storageContext;
     }
 
