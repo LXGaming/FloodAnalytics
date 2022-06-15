@@ -33,6 +33,8 @@ public class FloodJob : IJob {
         
         var previousFireTime = context.PreviousFireTimeUtc?.ToUnixTimeSeconds();
         foreach (var (key, value) in torrentListSummary.Torrents) {
+            var torrent = await GetOrCreateTorrent(value);
+            
             if (value.DateActive == 0) { // Value not available
                 continue;
             }
@@ -45,7 +47,6 @@ public class FloodJob : IJob {
                 }
             }
             
-            var torrent = await GetOrCreateTorrent(value);
             _storageContext.Traffic.Add(new Traffic {
                 BytesDone = value.BytesDone,
                 SizeBytes = value.SizeBytes,
