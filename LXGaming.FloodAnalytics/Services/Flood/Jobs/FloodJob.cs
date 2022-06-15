@@ -1,6 +1,5 @@
 ﻿using LXGaming.FloodAnalytics.Models;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
-using LXGaming.FloodAnalytics.Services.Quartz;
 using LXGaming.FloodAnalytics.Storage;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
@@ -10,7 +9,6 @@ namespace LXGaming.FloodAnalytics.Services.Flood.Jobs;
 [DisallowConcurrentExecution, PersistJobDataAfterExecution]
 public class FloodJob : IJob {
     
-    public const string TorrentsKey = "torrents";
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
     private readonly FloodService _floodService;
     private readonly StorageContext _storageContext;
@@ -26,22 +24,10 @@ public class FloodJob : IJob {
             return;
         }
         
-        var activeTorrents = context.TryGetOrCreateValue<HashSet<string>>(TorrentsKey);
-        
-        var previousFireTime = context.PreviousFireTimeUtc?.ToUnixTimeSeconds();
-        foreach (var (key, value) in torrentListSummary.Torrents) {
+        foreach (var (_, value) in torrentListSummary.Torrents) {
             var torrent = await GetOrCreateTorrent(value);
-            
-            if (value.DateActive == 0) { // Value not available
+            if (value.DateActive == 0 || await TrafficExists(value)) {
                 continue;
-            }
-            
-            if (previousFireTime != null && value.DateActive < previousFireTime) {
-                if (value.DateActive == -1) { // Active now
-                    activeTorrents.Add(key);
-                } else if (!activeTorrents.Contains(key)) {
-                    continue;
-                }
             }
             
             _storageContext.Traffic.Add(new Traffic {
@@ -83,5 +69,25 @@ public class FloodJob : IJob {
 
         _storageContext.Add(torrent);
         return torrent;
+    }
+    
+    private async Task<bool> TrafficExists(TorrentProperties properties) {
+        var previousTraffic = await _storageContext.Traffic
+            .Where(model => string.Equals(model.TorrentId, properties.Hash))
+            .OrderByDescending(model => model.Id)
+            .FirstOrDefaultAsync();
+        return previousTraffic != null
+               && previousTraffic.BytesDone == properties.BytesDone
+               && previousTraffic.SizeBytes == properties.SizeBytes
+               && previousTraffic.PercentComplete == properties.PercentComplete
+               && previousTraffic.Ratio == properties.Ratio
+               && previousTraffic.DownRate == properties.DownRate
+               && previousTraffic.DownTotal == properties.DownTotal
+               && previousTraffic.UpRate == properties.UpRate
+               && previousTraffic.UpTotal == properties.UpTotal
+               && previousTraffic.PeersConnected == properties.PeersConnected
+               && previousTraffic.PeersTotal == properties.PeersTotal
+               && previousTraffic.SeedsConnected == properties.SeedsConnected
+               && previousTraffic.SeedsTotal == properties.SeedsTotal;
     }
 }
