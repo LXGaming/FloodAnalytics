@@ -31,7 +31,7 @@ public class FloodJob : IJob {
         
         var activeTorrents = context.TryGetOrCreateValue<HashSet<string>>(TorrentsKey);
         
-        var previousFireTime = context.PreviousFireTimeUtc?.ToUnixTimeMilliseconds();
+        var previousFireTime = context.PreviousFireTimeUtc?.ToUnixTimeSeconds();
         foreach (var (key, value) in torrentListSummary.Torrents) {
             if (value.DateActive == 0) { // Value not available
                 continue;
