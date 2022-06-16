@@ -1,7 +1,6 @@
-﻿using LXGaming.FloodAnalytics.Models;
-using LXGaming.FloodAnalytics.Services.Flood.Models;
-using LXGaming.FloodAnalytics.Storage;
-using Microsoft.EntityFrameworkCore;
+﻿using InfluxDB.Client.Api.Domain;
+using InfluxDB.Client.Writes;
+using LXGaming.FloodAnalytics.Services.InfluxDb;
 using Quartz;
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Jobs; 
@@ -11,11 +10,11 @@ public class FloodJob : IJob {
     
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
     private readonly FloodService _floodService;
-    private readonly StorageContext _storageContext;
-
-    public FloodJob(FloodService floodService, StorageContext storageContext) {
+    private readonly InfluxDbService _influxDbService;
+    
+    public FloodJob(FloodService floodService, InfluxDbService influxDbService) {
         _floodService = floodService;
-        _storageContext = storageContext;
+        _influxDbService = influxDbService;
     }
 
     public async Task Execute(IJobExecutionContext context) {
@@ -23,71 +22,31 @@ public class FloodJob : IJob {
         if (torrentListSummary?.Torrents == null || torrentListSummary.Torrents.Count == 0) {
             return;
         }
-        
+
+        var points = new List<PointData>(torrentListSummary.Torrents.Count);
         foreach (var (_, value) in torrentListSummary.Torrents) {
-            var torrent = await GetOrCreateTorrent(value);
-            if (value.DateActive == 0 || await TrafficExists(value)) {
-                continue;
-            }
+            var point = PointData
+                .Measurement("torrent")
+                .Tag("id", value.Hash)
+                .Tag("name", value.Name)
+                .Tag("trackers", string.Join(',', value.TrackerUris!))
+                .Field("bytes_done", value.BytesDone)
+                .Field("size_bytes", value.SizeBytes)
+                .Field("percent_complete", value.PercentComplete)
+                .Field("ratio", value.Ratio)
+                .Field("down_rate", value.DownRate)
+                .Field("down_total", value.DownTotal)
+                .Field("up_rate", value.UpRate)
+                .Field("up_total", value.UpTotal)
+                .Field("peers_connected", value.PeersConnected)
+                .Field("peers_total", value.PeersTotal)
+                .Field("seeds_connected", value.SeedsConnected)
+                .Field("seeds_total", value.SeedsTotal)
+                .Timestamp(context.ScheduledFireTimeUtc ?? context.FireTimeUtc, WritePrecision.S);
             
-            _storageContext.Traffic.Add(new Traffic {
-                BytesDone = value.BytesDone,
-                SizeBytes = value.SizeBytes,
-                PercentComplete = value.PercentComplete,
-                Ratio = value.Ratio,
-                DownRate = value.DownRate,
-                DownTotal = value.DownTotal,
-                UpRate = value.UpRate,
-                UpTotal = value.UpTotal,
-                PeersConnected = value.PeersConnected,
-                PeersTotal = value.PeersTotal,
-                SeedsConnected = value.SeedsConnected,
-                SeedsTotal = value.SeedsTotal,
-                CreatedAt = context.ScheduledFireTimeUtc?.LocalDateTime ?? context.FireTimeUtc.LocalDateTime,
-                Torrent = torrent
-            });
+            points.Add(point);
         }
         
-        await _storageContext.SaveChangesAsync();
-    }
-
-    private async Task<Torrent> GetOrCreateTorrent(TorrentProperties properties) {
-        var existingTorrent = await _storageContext.Torrents
-            .SingleOrDefaultAsync(model => string.Equals(model.Id, properties.Hash));
-        if (existingTorrent != null) {
-            existingTorrent.Name = properties.Name!;
-            existingTorrent.Trackers = properties.TrackerUris!.ToArray();
-            return existingTorrent;
-        }
-
-        var torrent = new Torrent {
-            Id = properties.Hash!,
-            Name = properties.Name!,
-            Trackers = properties.TrackerUris!.ToArray(),
-            CreatedAt = DateTimeOffset.FromUnixTimeSeconds(properties.DateAdded).LocalDateTime
-        };
-
-        _storageContext.Add(torrent);
-        return torrent;
-    }
-    
-    private async Task<bool> TrafficExists(TorrentProperties properties) {
-        var previousTraffic = await _storageContext.Traffic
-            .Where(model => string.Equals(model.TorrentId, properties.Hash))
-            .OrderByDescending(model => model.Id)
-            .FirstOrDefaultAsync();
-        return previousTraffic != null
-               && previousTraffic.BytesDone == properties.BytesDone
-               && previousTraffic.SizeBytes == properties.SizeBytes
-               && previousTraffic.PercentComplete == properties.PercentComplete
-               && previousTraffic.Ratio == properties.Ratio
-               && previousTraffic.DownRate == properties.DownRate
-               && previousTraffic.DownTotal == properties.DownTotal
-               && previousTraffic.UpRate == properties.UpRate
-               && previousTraffic.UpTotal == properties.UpTotal
-               && previousTraffic.PeersConnected == properties.PeersConnected
-               && previousTraffic.PeersTotal == properties.PeersTotal
-               && previousTraffic.SeedsConnected == properties.SeedsConnected
-               && previousTraffic.SeedsTotal == properties.SeedsTotal;
+        await _influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points, _influxDbService.Bucket, _influxDbService.Organization);
     }
 }

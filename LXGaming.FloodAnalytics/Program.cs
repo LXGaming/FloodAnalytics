@@ -4,8 +4,6 @@ using LXGaming.Common.Hosting;
 using LXGaming.Common.Serilog;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Configuration.Categories;
-using LXGaming.FloodAnalytics.Storage;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Quartz;
@@ -15,7 +13,6 @@ using Serilog.Sinks.File.Archive;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.ControlledBy(new EnvironmentLoggingLevelSwitch(LogEventLevel.Verbose, LogEventLevel.Debug))
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Quartz", LogEventLevel.Information)
     .MinimumLevel.Override("Quartz.Core.ErrorLogger", LogEventLevel.Fatal)
     .Enrich.FromLogContext()
@@ -39,14 +36,6 @@ try {
 
     builder.ConfigureServices(services => {
         services.AddSingleton<IConfiguration>(configuration);
-        
-        services.AddDbContext<StorageContext>(optionsBuilder => {
-            var connectionString = configuration.Config!.ConnectionStrings["MySql"];
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), contextOptionsBuilder => {
-                contextOptionsBuilder.EnableStringComparisonTranslations();
-            });
-        });
-        services.AddService<StorageService>();
         
         services.Configure<QuartzOptions>(options => {
             var quartzCategory = configuration.Config!.QuartzCategory;
