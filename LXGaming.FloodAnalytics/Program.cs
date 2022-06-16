@@ -17,6 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.ControlledBy(new EnvironmentLoggingLevelSwitch(LogEventLevel.Verbose, LogEventLevel.Debug))
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Quartz", LogEventLevel.Information)
+    .MinimumLevel.Override("Quartz.Core.ErrorLogger", LogEventLevel.Fatal)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(
