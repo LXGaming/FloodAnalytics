@@ -4,8 +4,9 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/lxgaming/floodanalytics)](https://hub.docker.com/r/lxgaming/floodanalytics)
 
 ## Prerequisites
-- InfluxDB
-- Grafana
+- [Flood](https://flood.js.org/)
+- [Grafana](https://grafana.com/)
+- [InfluxDB](https://www.influxdata.com/)
 
 ## Usage
 ### docker-compose
