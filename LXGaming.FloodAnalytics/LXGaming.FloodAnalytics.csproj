@@ -24,8 +24,4 @@
       <PackageReference Include="Serilog.Sinks.File.Archive" Version="1.0.1" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Services\Flood\Models" />
-    </ItemGroup>
-
 </Project>
