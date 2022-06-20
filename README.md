@@ -1,7 +1,7 @@
 # FloodAnalytics
 
-[![License](https://lxgaming.github.io/badges/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Docker Pulls](https://img.shields.io/docker/pulls/lxgaming/floodanalytics)](https://hub.docker.com/r/lxgaming/floodanalytics)
+[![License](https://img.shields.io/github/license/LXGaming/FloodAnalytics?label=License&cacheSeconds=86400)](https://github.com/LXGaming/FloodAnalytics/blob/main/LICENSE)
+[![Docker Hub](https://img.shields.io/docker/v/lxgaming/floodanalytics/latest?label=Docker%20Hub)](https://hub.docker.com/r/lxgaming/floodanalytics)
 
 ## Prerequisites
 - [Flood](https://flood.js.org/)
@@ -25,4 +25,4 @@ services:
 ```
 
 ## License
-FloodAnalytics is licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license.
+FloodAnalytics is licensed under the [Apache 2.0](https://github.com/LXGaming/FloodAnalytics/blob/main/LICENSE) license.
