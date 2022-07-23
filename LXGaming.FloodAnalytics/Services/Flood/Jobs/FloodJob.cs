@@ -5,7 +5,8 @@ using Quartz;
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Jobs;
 
-[DisallowConcurrentExecution, PersistJobDataAfterExecution]
+[DisallowConcurrentExecution]
+[PersistJobDataAfterExecution]
 public class FloodJob : IJob {
 
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
