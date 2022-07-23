@@ -1,4 +1,4 @@
-﻿namespace LXGaming.FloodAnalytics.Configuration; 
+﻿namespace LXGaming.FloodAnalytics.Configuration;
 
 public interface IConfiguration {
 

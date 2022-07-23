@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace LXGaming.FloodAnalytics.Utilities; 
+namespace LXGaming.FloodAnalytics.Utilities;
 
 public static class Constants {
 

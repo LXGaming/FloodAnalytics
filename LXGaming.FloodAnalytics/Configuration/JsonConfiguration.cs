@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LXGaming.FloodAnalytics.Configuration; 
+namespace LXGaming.FloodAnalytics.Configuration;
 
 public class JsonConfiguration : IConfiguration {
 

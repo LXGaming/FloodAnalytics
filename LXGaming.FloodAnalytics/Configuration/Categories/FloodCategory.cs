@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LXGaming.FloodAnalytics.Configuration.Categories; 
+namespace LXGaming.FloodAnalytics.Configuration.Categories;
 
 public class FloodCategory {
 

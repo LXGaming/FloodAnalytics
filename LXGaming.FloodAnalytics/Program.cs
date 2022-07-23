@@ -36,7 +36,7 @@ try {
 
     builder.ConfigureServices(services => {
         services.AddSingleton<IConfiguration>(configuration);
-        
+
         services.Configure<QuartzOptions>(options => {
             var quartzCategory = configuration.Config!.QuartzCategory;
             if (quartzCategory.MaxConcurrency <= 0) {
@@ -50,7 +50,7 @@ try {
             configurator.UseMicrosoftDependencyInjectionJobFactory();
         });
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
-        
+
         services.AddAllServices(Assembly.GetExecutingAssembly());
     });
 

@@ -3,15 +3,15 @@ using InfluxDB.Client.Writes;
 using LXGaming.FloodAnalytics.Services.InfluxDb;
 using Quartz;
 
-namespace LXGaming.FloodAnalytics.Services.Flood.Jobs; 
+namespace LXGaming.FloodAnalytics.Services.Flood.Jobs;
 
 [DisallowConcurrentExecution, PersistJobDataAfterExecution]
 public class FloodJob : IJob {
-    
+
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
     private readonly FloodService _floodService;
     private readonly InfluxDbService _influxDbService;
-    
+
     public FloodJob(FloodService floodService, InfluxDbService influxDbService) {
         _floodService = floodService;
         _influxDbService = influxDbService;
@@ -43,10 +43,10 @@ public class FloodJob : IJob {
                 .Field("seeds_connected", value.SeedsConnected)
                 .Field("seeds_total", value.SeedsTotal)
                 .Timestamp(context.ScheduledFireTimeUtc ?? context.FireTimeUtc, WritePrecision.S);
-            
+
             points.Add(point);
         }
-        
+
         await _influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points, _influxDbService.Bucket, _influxDbService.Organization);
     }
 }

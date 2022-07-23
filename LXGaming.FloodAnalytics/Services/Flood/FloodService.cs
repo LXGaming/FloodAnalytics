@@ -11,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
 
-namespace LXGaming.FloodAnalytics.Services.Flood; 
+namespace LXGaming.FloodAnalytics.Services.Flood;
 
 [Service(ServiceLifetime.Singleton)]
 public class FloodService : IHostedService {
@@ -22,7 +22,7 @@ public class FloodService : IHostedService {
     private readonly ILogger<FloodService> _logger;
     private readonly ISchedulerFactory _schedulerFactory;
     private HttpClient? _httpClient;
-    
+
     public FloodService(IConfiguration configuration, ILogger<FloodService> logger, ISchedulerFactory schedulerFactory) {
         _configuration = configuration;
         _logger = logger;
@@ -35,7 +35,7 @@ public class FloodService : IHostedService {
             _logger.LogWarning("FloodCategory is unavailable");
             return;
         }
-        
+
         if (string.IsNullOrEmpty(floodCategory.Address)) {
             _logger.LogWarning("Flood address has not been configured");
             return;
