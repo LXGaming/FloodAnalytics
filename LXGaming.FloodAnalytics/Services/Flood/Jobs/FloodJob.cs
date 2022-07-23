@@ -19,7 +19,7 @@ public class FloodJob : IJob {
     }
 
     public async Task Execute(IJobExecutionContext context) {
-        var torrentListSummary = await _floodService.EnsureAuthenticatedAsync(_floodService.GetTorrentsAsync());
+        var torrentListSummary = await _floodService.EnsureAuthenticatedAsync(_floodService.GetTorrentsAsync);
         if (torrentListSummary?.Torrents == null || torrentListSummary.Torrents.Count == 0) {
             return;
         }
