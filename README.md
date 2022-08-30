@@ -10,6 +10,7 @@
 
 ## Usage
 ### docker-compose
+Download and use [config.json](https://raw.githubusercontent.com/LXGaming/FloodAnalytics/main/LXGaming.FloodAnalytics/config.json)
 ```yaml
 version: "3"
 services:
