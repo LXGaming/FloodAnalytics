@@ -44,7 +44,7 @@ try {
                 quartzCategory.MaxConcurrency = QuartzCategory.DefaultMaxConcurrency;
             }
 
-            options.Set("quartz.threadPool.maxConcurrency", $"{quartzCategory.MaxConcurrency}");
+            options.Add("quartz.threadPool.maxConcurrency", $"{quartzCategory.MaxConcurrency}");
         });
         services.AddQuartz(configurator => {
             configurator.UseMicrosoftDependencyInjectionJobFactory();
