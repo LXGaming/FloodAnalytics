@@ -33,7 +33,7 @@ public class InfluxDbService : IHostedService {
             throw new InvalidOperationException("Token has not been configured for InfluxDb");
         }
 
-        Client = InfluxDBClientFactory.Create(influxDbCategory.Url, influxDbCategory.Token);
+        Client = new InfluxDBClient(influxDbCategory.Url, influxDbCategory.Token);
         Bucket = influxDbCategory.Bucket;
         Organization = influxDbCategory.Organization;
         return Task.CompletedTask;
