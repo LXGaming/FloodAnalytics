@@ -13,6 +13,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="InfluxDB.Client" Version="4.13.0" />
       <PackageReference Include="LXGaming.Common.Hosting" Version="1.5.1" />
       <PackageReference Include="LXGaming.Common.Serilog" Version="1.5.1" />
