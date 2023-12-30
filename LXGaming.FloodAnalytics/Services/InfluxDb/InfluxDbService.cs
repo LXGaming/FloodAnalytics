@@ -1,5 +1,7 @@
 ﻿using InfluxDB.Client;
 using LXGaming.Common.Hosting;
+using LXGaming.Configuration;
+using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,20 +9,16 @@ using Microsoft.Extensions.Hosting;
 namespace LXGaming.FloodAnalytics.Services.InfluxDb;
 
 [Service(ServiceLifetime.Singleton)]
-public class InfluxDbService : IHostedService {
+public class InfluxDbService(IConfiguration configuration) : IHostedService {
 
     public InfluxDBClient Client { get; private set; } = null!;
     public string? Bucket { get; private set; }
     public string? Organization { get; private set; }
 
-    private readonly IConfiguration _configuration;
-
-    public InfluxDbService(IConfiguration configuration) {
-        _configuration = configuration;
-    }
+    private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
 
     public Task StartAsync(CancellationToken cancellationToken) {
-        var influxDbCategory = _configuration.Config?.InfluxDbCategory;
+        var influxDbCategory = _config.Value?.InfluxDbCategory;
         if (influxDbCategory == null) {
             throw new InvalidOperationException("InfluxDbCategory is unavailable");
         }

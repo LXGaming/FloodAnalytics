@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
 using LXGaming.Common.Hosting;
+using LXGaming.Configuration;
+using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood.Jobs;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
@@ -14,40 +16,35 @@ using Quartz;
 namespace LXGaming.FloodAnalytics.Services.Flood;
 
 [Service(ServiceLifetime.Singleton)]
-public class FloodService : IHostedService {
+public class FloodService(
+    IConfiguration configuration,
+    ILogger<FloodService> logger,
+    ISchedulerFactory schedulerFactory) : IHostedService {
 
     private const uint DefaultReconnectDelay = 2;
     private const uint DefaultMaximumReconnectDelay = 300; // 5 Minutes
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<FloodService> _logger;
-    private readonly ISchedulerFactory _schedulerFactory;
+    private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
     private HttpClient? _httpClient;
 
-    public FloodService(IConfiguration configuration, ILogger<FloodService> logger, ISchedulerFactory schedulerFactory) {
-        _configuration = configuration;
-        _logger = logger;
-        _schedulerFactory = schedulerFactory;
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken) {
-        var floodCategory = _configuration.Config?.FloodCategory;
+        var floodCategory = _config.Value?.FloodCategory;
         if (floodCategory == null) {
-            _logger.LogWarning("FloodCategory is unavailable");
+            logger.LogWarning("FloodCategory is unavailable");
             return;
         }
 
         if (string.IsNullOrEmpty(floodCategory.Address)) {
-            _logger.LogWarning("Flood address has not been configured");
+            logger.LogWarning("Flood address has not been configured");
             return;
         }
 
         if (string.IsNullOrEmpty(floodCategory.Username) || string.IsNullOrEmpty(floodCategory.Password)) {
-            _logger.LogWarning("Flood credentials have not been configured");
+            logger.LogWarning("Flood credentials have not been configured");
             return;
         }
 
         if (string.IsNullOrEmpty(floodCategory.Schedule)) {
-            _logger.LogWarning("Flood schedule has not been configured");
+            logger.LogWarning("Flood schedule has not been configured");
             return;
         }
 
@@ -63,11 +60,11 @@ public class FloodService : IHostedService {
             try {
                 var authenticate = await AuthenticateAsync(floodCategory.Username, floodCategory.Password);
                 if (authenticate is not { Success: true }) {
-                    _logger.LogWarning("Flood authentication failed");
+                    logger.LogWarning("Flood authentication failed");
                     return;
                 }
 
-                _logger.LogInformation("Connected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
+                logger.LogInformation("Connected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
                 break;
             } catch (HttpRequestException ex) {
                 if (ex is { StatusCode: HttpStatusCode.Unauthorized }) {
@@ -77,12 +74,12 @@ public class FloodService : IHostedService {
                 var delay = TimeSpan.FromSeconds(reconnectDelay);
                 reconnectDelay = Math.Min(reconnectDelay << 1, DefaultMaximumReconnectDelay);
 
-                _logger.LogWarning("Connection failed! Next attempt in {Delay}: {Message}", delay, ex.Message);
+                logger.LogWarning("Connection failed! Next attempt in {Delay}: {Message}", delay, ex.Message);
                 await Task.Delay(delay, cancellationToken);
             }
         }
 
-        var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
+        var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
         await scheduler.ScheduleJobAsync<FloodJob>(FloodJob.JobKey, TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build());
     }
 
@@ -100,11 +97,11 @@ public class FloodService : IHostedService {
             }
         }
 
-        var authenticate = await AuthenticateAsync(_configuration.Config?.FloodCategory.Username ?? "", _configuration.Config?.FloodCategory.Password ?? "");
+        var authenticate = await AuthenticateAsync(_config.Value?.FloodCategory.Username ?? "", _config.Value?.FloodCategory.Password ?? "");
         if (authenticate is { Success: true }) {
-            _logger.LogInformation("Reconnected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
+            logger.LogInformation("Reconnected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
         } else {
-            _logger.LogWarning("Reconnection failed!");
+            logger.LogWarning("Reconnection failed!");
         }
 
         return await task();
@@ -115,16 +112,17 @@ public class FloodService : IHostedService {
             throw new InvalidOperationException("HttpClient is unavailable");
         }
 
+        // ReSharper disable once UsingStatementResourceInitialization
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/authenticate") {
             Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                {"username", username},
-                {"password", password}
+                { "username", username },
+                { "password", password }
             })
         };
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<Authenticate>(stream, Toolbox.JsonSerializerOptions);
+        return await JsonSerializer.DeserializeAsync<Authenticate>(stream);
     }
 
     public async Task<TorrentProperties?> GetTorrentAsync(string hash) {
@@ -145,6 +143,6 @@ public class FloodService : IHostedService {
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<TorrentListSummary>(stream, Toolbox.JsonSerializerOptions);
+        return await JsonSerializer.DeserializeAsync<TorrentListSummary>(stream);
     }
 }

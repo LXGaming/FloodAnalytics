@@ -2,7 +2,7 @@
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Models;
 
-public class TorrentListSummary {
+public record TorrentListSummary {
 
     [JsonPropertyName("id")]
     public long Id { get; init; }

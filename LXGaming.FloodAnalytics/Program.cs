@@ -1,7 +1,11 @@
 ﻿using System.IO.Compression;
 using System.Reflection;
+using System.Text.Json;
 using LXGaming.Common.Hosting;
 using LXGaming.Common.Serilog;
+using LXGaming.Configuration;
+using LXGaming.Configuration.File.Json;
+using LXGaming.Configuration.Hosting;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Configuration.Categories;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,20 +29,23 @@ Log.Logger = new LoggerConfiguration()
         hooks: new ArchiveHooks(CompressionLevel.Optimal))
     .CreateBootstrapLogger();
 
-Log.Information("Initializing...");
+Log.Information("Initialising...");
 
 try {
-    var configuration = new JsonConfiguration(Directory.GetCurrentDirectory());
-    await configuration.LoadConfigurationAsync();
+    var configuration = new DefaultConfiguration();
+    var config = await configuration.LoadJsonFileAsync<Config>(
+        options: new JsonSerializerOptions {
+            WriteIndented = true
+        }
+    );
 
     var builder = Host.CreateDefaultBuilder(args);
+    builder.UseConfiguration(configuration);
     builder.UseSerilog();
 
     builder.ConfigureServices(services => {
-        services.AddSingleton<IConfiguration>(configuration);
-
         services.Configure<QuartzOptions>(options => {
-            var quartzCategory = configuration.Config!.QuartzCategory;
+            var quartzCategory = config.Value!.QuartzCategory;
             if (quartzCategory.MaxConcurrency <= 0) {
                 Log.Warning("MaxConcurrency is out of bounds. Resetting to {Value}", QuartzCategory.DefaultMaxConcurrency);
                 quartzCategory.MaxConcurrency = QuartzCategory.DefaultMaxConcurrency;
@@ -57,7 +64,7 @@ try {
     await host.RunAsync();
     return 0;
 } catch (Exception ex) {
-    Log.Fatal(ex, "Application failed to initialize");
+    Log.Fatal(ex, "Application failed to initialise");
     return 1;
 } finally {
     Log.CloseAndFlush();

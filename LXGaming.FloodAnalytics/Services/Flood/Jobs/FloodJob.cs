@@ -7,19 +7,12 @@ namespace LXGaming.FloodAnalytics.Services.Flood.Jobs;
 
 [DisallowConcurrentExecution]
 [PersistJobDataAfterExecution]
-public class FloodJob : IJob {
+public class FloodJob(FloodService floodService, InfluxDbService influxDbService) : IJob {
 
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
-    private readonly FloodService _floodService;
-    private readonly InfluxDbService _influxDbService;
-
-    public FloodJob(FloodService floodService, InfluxDbService influxDbService) {
-        _floodService = floodService;
-        _influxDbService = influxDbService;
-    }
 
     public async Task Execute(IJobExecutionContext context) {
-        var torrentListSummary = await _floodService.EnsureAuthenticatedAsync(_floodService.GetTorrentsAsync);
+        var torrentListSummary = await floodService.EnsureAuthenticatedAsync(floodService.GetTorrentsAsync);
         if (torrentListSummary?.Torrents == null || torrentListSummary.Torrents.Count == 0) {
             return;
         }
@@ -48,6 +41,6 @@ public class FloodJob : IJob {
             points.Add(point);
         }
 
-        await _influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points, _influxDbService.Bucket, _influxDbService.Organization);
+        await influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points, influxDbService.Bucket, influxDbService.Organization);
     }
 }

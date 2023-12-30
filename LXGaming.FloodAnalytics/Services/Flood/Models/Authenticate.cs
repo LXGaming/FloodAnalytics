@@ -2,7 +2,7 @@
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Models;
 
-public class Authenticate {
+public record Authenticate {
 
     [JsonPropertyName("level")]
     public AccessLevel Level { get; init; }
