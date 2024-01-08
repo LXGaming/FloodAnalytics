@@ -8,5 +8,5 @@ public record TorrentListSummary {
     public long Id { get; init; }
 
     [JsonPropertyName("torrents")]
-    public Dictionary<string, TorrentProperties>? Torrents { get; init; }
+    public required Dictionary<string, TorrentProperties> Torrents { get; init; }
 }

@@ -4,12 +4,12 @@ namespace LXGaming.FloodAnalytics.Services.Flood.Models;
 
 public record Authenticate {
 
-    [JsonPropertyName("level")]
-    public AccessLevel Level { get; init; }
-
     [JsonPropertyName("success")]
     public bool Success { get; init; }
 
     [JsonPropertyName("username")]
-    public string? Username { get; init; }
+    public required string Username { get; init; }
+
+    [JsonPropertyName("level")]
+    public AccessLevel Level { get; init; }
 }
