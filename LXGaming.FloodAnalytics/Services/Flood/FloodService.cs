@@ -125,15 +125,6 @@ public class FloodService(
         return await JsonSerializer.DeserializeAsync<Authenticate>(stream);
     }
 
-    public async Task<TorrentProperties?> GetTorrentAsync(string hash) {
-        var torrentListSummary = await GetTorrentsAsync();
-        if (torrentListSummary?.Torrents?.TryGetValue(hash, out var torrentProperties) ?? false) {
-            return torrentProperties;
-        }
-
-        return null;
-    }
-
     public async Task<TorrentListSummary?> GetTorrentsAsync() {
         if (_httpClient == null) {
             throw new InvalidOperationException("HttpClient is unavailable");
