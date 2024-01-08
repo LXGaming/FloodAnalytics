@@ -42,11 +42,6 @@ public class FloodService(
             return;
         }
 
-        if (string.IsNullOrEmpty(floodCategory.Schedule)) {
-            logger.LogWarning("Flood schedule has not been configured");
-            return;
-        }
-
         _httpClient = webService.CreateHttpClient(new HttpClientHandler {
             CookieContainer = new CookieContainer(),
             UseCookies = true
@@ -77,11 +72,15 @@ public class FloodService(
             }
         }
 
-        var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
-        await scheduler.ScheduleJob(
-            JobBuilder.Create<FloodJob>().WithIdentity(FloodJob.JobKey).Build(),
-            TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build(),
-            cancellationToken);
+        if (!string.IsNullOrEmpty(floodCategory.Schedule)) {
+            var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+            await scheduler.ScheduleJob(
+                JobBuilder.Create<FloodJob>().WithIdentity(FloodJob.JobKey).Build(),
+                TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build(),
+                cancellationToken);
+        } else {
+            logger.LogWarning("Flood schedule has not been configured");
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) {
