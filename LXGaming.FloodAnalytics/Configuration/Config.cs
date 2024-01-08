@@ -13,4 +13,7 @@ public class Config {
 
     [JsonPropertyName("quartz")]
     public QuartzCategory QuartzCategory { get; init; } = new();
+
+    [JsonPropertyName("web")]
+    public WebCategory WebCategory { get; init; } = new();
 }

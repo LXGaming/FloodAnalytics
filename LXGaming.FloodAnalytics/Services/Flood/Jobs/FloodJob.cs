@@ -13,7 +13,7 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
 
     public async Task Execute(IJobExecutionContext context) {
         var torrentListSummary = await floodService.EnsureAuthenticatedAsync(floodService.GetTorrentsAsync);
-        if (torrentListSummary?.Torrents == null || torrentListSummary.Torrents.Count == 0) {
+        if (torrentListSummary.Torrents.Count == 0) {
             return;
         }
 

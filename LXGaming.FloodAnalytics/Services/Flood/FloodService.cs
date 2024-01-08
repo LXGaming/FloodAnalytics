@@ -1,12 +1,11 @@
 ﻿using System.Net;
-using System.Text.Json;
 using LXGaming.Common.Hosting;
 using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood.Jobs;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
-using LXGaming.FloodAnalytics.Utilities;
+using LXGaming.FloodAnalytics.Services.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,7 +17,8 @@ namespace LXGaming.FloodAnalytics.Services.Flood;
 public class FloodService(
     IConfiguration configuration,
     ILogger<FloodService> logger,
-    ISchedulerFactory schedulerFactory) : IHostedService {
+    ISchedulerFactory schedulerFactory,
+    WebService webService) : IHostedService {
 
     private const uint DefaultReconnectDelay = 2;
     private const uint DefaultMaximumReconnectDelay = 300; // 5 Minutes
@@ -47,12 +47,11 @@ public class FloodService(
             return;
         }
 
-        _httpClient = new HttpClient(new HttpClientHandler {
+        _httpClient = webService.CreateHttpClient(new HttpClientHandler {
             CookieContainer = new CookieContainer(),
             UseCookies = true
         });
         _httpClient.BaseAddress = new Uri(floodCategory.Address);
-        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", Constants.Application.UserAgent);
 
         var reconnectDelay = DefaultReconnectDelay;
         while (true) {
@@ -100,7 +99,7 @@ public class FloodService(
         }
 
         var authenticate = await AuthenticateAsync();
-        if (authenticate is { Success: true }) {
+        if (authenticate.Success) {
             logger.LogInformation("Reconnected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
         } else {
             logger.LogWarning("Reconnection failed!");
@@ -109,7 +108,7 @@ public class FloodService(
         return await task();
     }
 
-    public async Task<Authenticate?> AuthenticateAsync() {
+    public async Task<Authenticate> AuthenticateAsync() {
         if (_httpClient == null) {
             throw new InvalidOperationException("HttpClient is unavailable");
         }
@@ -128,11 +127,10 @@ public class FloodService(
         };
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<Authenticate>(stream);
+        return await webService.DeserializeAsync<Authenticate>(response);
     }
 
-    public async Task<TorrentListSummary?> GetTorrentsAsync() {
+    public async Task<TorrentListSummary> GetTorrentsAsync() {
         if (_httpClient == null) {
             throw new InvalidOperationException("HttpClient is unavailable");
         }
@@ -140,7 +138,6 @@ public class FloodService(
         using var request = new HttpRequestMessage(HttpMethod.Get, "api/torrents");
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<TorrentListSummary>(stream);
+        return await webService.DeserializeAsync<TorrentListSummary>(response);
     }
 }
