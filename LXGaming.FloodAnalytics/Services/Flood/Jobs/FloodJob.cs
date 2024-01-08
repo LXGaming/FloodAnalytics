@@ -1,5 +1,6 @@
 ﻿using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
+using LXGaming.FloodAnalytics.Services.Flood.Models;
 using LXGaming.FloodAnalytics.Services.InfluxDb;
 using Quartz;
 
@@ -23,19 +24,32 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
                 .Measurement("torrent")
                 .Tag("id", value.Hash)
                 .Tag("name", value.Name)
-                .Tag("trackers", string.Join(',', value.TrackerUris!))
+                .Tag("trackers", string.Join(',', value.TrackerUris))
                 .Field("bytes_done", value.BytesDone)
-                .Field("size_bytes", value.SizeBytes)
-                .Field("percent_complete", value.PercentComplete)
-                .Field("ratio", value.Ratio)
                 .Field("down_rate", value.DownRate)
                 .Field("down_total", value.DownTotal)
-                .Field("up_rate", value.UpRate)
-                .Field("up_total", value.UpTotal)
+                .Field("is_active", value.Status.Contains(TorrentStatus.Active))
+                .Field("is_checking", value.Status.Contains(TorrentStatus.Checking))
+                .Field("is_complete", value.Status.Contains(TorrentStatus.Complete))
+                .Field("is_downloading", value.Status.Contains(TorrentStatus.Downloading))
+                .Field("is_error", value.Status.Contains(TorrentStatus.Error))
+                .Field("is_inactive", value.Status.Contains(TorrentStatus.Inactive))
+                .Field("is_initial_seeding", value.IsInitialSeeding)
+                .Field("is_private", value.IsPrivate)
+                .Field("is_seeding", value.Status.Contains(TorrentStatus.Seeding))
+                .Field("is_sequential", value.IsSequential)
+                .Field("is_stopped", value.Status.Contains(TorrentStatus.Stopped))
+                .Field("message", value.Message)
                 .Field("peers_connected", value.PeersConnected)
                 .Field("peers_total", value.PeersTotal)
+                .Field("percent_complete", value.PercentComplete)
+                .Field("priority", (int) value.Priority)
+                .Field("ratio", value.Ratio)
                 .Field("seeds_connected", value.SeedsConnected)
                 .Field("seeds_total", value.SeedsTotal)
+                .Field("size_bytes", value.SizeBytes)
+                .Field("up_rate", value.UpRate)
+                .Field("up_total", value.UpTotal)
                 .Timestamp(context.ScheduledFireTimeUtc ?? context.FireTimeUtc, WritePrecision.S);
 
             points.Add(point);
