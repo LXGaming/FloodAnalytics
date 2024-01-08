@@ -6,7 +6,6 @@ using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood.Jobs;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
-using LXGaming.FloodAnalytics.Services.Quartz;
 using LXGaming.FloodAnalytics.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -80,7 +79,10 @@ public class FloodService(
         }
 
         var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
-        await scheduler.ScheduleJobAsync<FloodJob>(FloodJob.JobKey, TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build());
+        await scheduler.ScheduleJob(
+            JobBuilder.Create<FloodJob>().WithIdentity(FloodJob.JobKey).Build(),
+            TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build(),
+            cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) {
