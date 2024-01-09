@@ -52,7 +52,7 @@ public class FloodService(
         while (true) {
             try {
                 var authenticate = await AuthenticateAsync();
-                if (authenticate is not { Success: true }) {
+                if (!authenticate.Success) {
                     logger.LogWarning("Flood authentication failed");
                     return;
                 }
