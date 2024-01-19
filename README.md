@@ -16,8 +16,6 @@ version: "3"
 services:
   floodanalytics:
     container_name: floodanalytics
-    environment:
-      - TZ=Pacific/Auckland
     image: lxgaming/floodanalytics:latest
     restart: unless-stopped
     volumes:
