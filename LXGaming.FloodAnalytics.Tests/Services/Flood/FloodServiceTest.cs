@@ -22,8 +22,8 @@ public class FloodServiceTest : ServiceTestBase {
     public void Setup() {
         var config = Provider.GetRequiredService<IConfiguration>().GetRequiredProvider<IProvider<Config>>();
         var category = config.Value?.FloodCategory;
-        if (string.IsNullOrEmpty(category?.Username) || string.IsNullOrEmpty(category?.Password)) {
-            Assert.Ignore("Flood credentials have not been configured");
+        if (string.IsNullOrEmpty(category?.Address)) {
+            Assert.Ignore("Flood address has not been configured");
         }
     }
 

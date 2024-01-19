@@ -37,11 +37,6 @@ public class FloodService(
             return;
         }
 
-        if (string.IsNullOrEmpty(floodCategory.Username) || string.IsNullOrEmpty(floodCategory.Password)) {
-            logger.LogWarning("Flood credentials have not been configured");
-            return;
-        }
-
         _httpClient = webService.CreateHttpClient(new HttpClientHandler {
             CookieContainer = new CookieContainer(),
             UseCookies = true
@@ -61,7 +56,8 @@ public class FloodService(
                 break;
             } catch (HttpRequestException ex) {
                 if (ex is { StatusCode: HttpStatusCode.Unauthorized }) {
-                    throw;
+                    logger.LogWarning(ex, "Flood authentication failed");
+                    return;
                 }
 
                 var delay = TimeSpan.FromSeconds(reconnectDelay);
