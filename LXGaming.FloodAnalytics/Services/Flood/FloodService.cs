@@ -37,7 +37,7 @@ public class FloodService(
             return;
         }
 
-        _httpClient = webService.CreateHttpClient(new HttpClientHandler {
+        _httpClient = webService.CreateHttpClient(new SocketsHttpHandler {
             CookieContainer = new CookieContainer(),
             UseCookies = true
         });
