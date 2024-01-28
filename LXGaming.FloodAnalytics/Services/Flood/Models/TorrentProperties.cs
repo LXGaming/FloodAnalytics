@@ -8,7 +8,7 @@ public record TorrentProperties {
     public long BytesDone { get; init; }
 
     [JsonPropertyName("comment")]
-    public required string Comment { get; init; }
+    public string? Comment { get; init; }
 
     [JsonPropertyName("dateActive")]
     public long DateActive { get; init; }
