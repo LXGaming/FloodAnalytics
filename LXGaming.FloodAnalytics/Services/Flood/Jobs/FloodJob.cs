@@ -1,19 +1,32 @@
-﻿using InfluxDB.Client.Api.Domain;
+﻿using System.Net;
+using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
 using LXGaming.FloodAnalytics.Services.InfluxDb;
+using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace LXGaming.FloodAnalytics.Services.Flood.Jobs;
 
 [DisallowConcurrentExecution]
 [PersistJobDataAfterExecution]
-public class FloodJob(FloodService floodService, InfluxDbService influxDbService) : IJob {
+public class FloodJob(FloodService floodService, InfluxDbService influxDbService, ILogger<FloodJob> logger) : IJob {
 
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
 
     public async Task Execute(IJobExecutionContext context) {
-        var torrentListSummary = await floodService.EnsureAuthenticatedAsync(floodService.GetTorrentsAsync);
+        TorrentListSummary torrentListSummary;
+        try {
+            torrentListSummary = await floodService.EnsureAuthenticatedAsync(floodService.GetTorrentsAsync);
+        } catch (HttpRequestException ex) {
+            if (ex is not { StatusCode: HttpStatusCode.InternalServerError }) {
+                throw;
+            }
+
+            logger.LogWarning("Encountered an Internal Server Error, check Flood for more details");
+            return;
+        }
+
         if (torrentListSummary.Torrents.Count == 0) {
             return;
         }
