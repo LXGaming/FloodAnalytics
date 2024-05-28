@@ -9,7 +9,7 @@
     <VersionPrefix>1.4.1</VersionPrefix>
     <Authors>Alex Thomson</Authors>
     <Product>FloodAnalytics</Product>
-    <Copyright>Copyright © Alex Thomson</Copyright>
+    <Copyright>© Alex Thomson. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' == 'true' or '$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">
