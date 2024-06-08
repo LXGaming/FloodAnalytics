@@ -18,12 +18,13 @@ public class FloodService(
     IConfiguration configuration,
     ILogger<FloodService> logger,
     ISchedulerFactory schedulerFactory,
-    WebService webService) : IHostedService {
+    WebService webService) : IHostedService, IDisposable {
 
     private const uint DefaultReconnectDelay = 2;
     private const uint DefaultMaximumReconnectDelay = 300; // 5 Minutes
     private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
     private HttpClient? _httpClient;
+    private bool _disposed;
 
     public async Task StartAsync(CancellationToken cancellationToken) {
         var floodCategory = _config.Value?.FloodCategory;
@@ -37,10 +38,11 @@ public class FloodService(
             return;
         }
 
-        _httpClient = webService.CreateHttpClient(new SocketsHttpHandler {
-            CookieContainer = new CookieContainer(),
-            UseCookies = true
-        });
+        var handler = webService.CreateHandler();
+        handler.CookieContainer = new CookieContainer();
+        handler.UseCookies = true;
+
+        _httpClient = webService.CreateClient(handler);
         _httpClient.BaseAddress = new Uri(floodCategory.Address);
 
         var reconnectDelay = DefaultReconnectDelay;
@@ -80,7 +82,6 @@ public class FloodService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) {
-        _httpClient?.Dispose();
         return Task.CompletedTask;
     }
 
@@ -132,5 +133,22 @@ public class FloodService(
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
         return await webService.DeserializeAsync<TorrentListSummary>(response);
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing) {
+        if (_disposed) {
+            return;
+        }
+
+        if (disposing) {
+            _httpClient?.Dispose();
+        }
+
+        _disposed = true;
     }
 }

@@ -1,8 +1,8 @@
-﻿using LXGaming.Common.Hosting;
-using LXGaming.Configuration;
+﻿using LXGaming.Configuration;
 using LXGaming.Configuration.Hosting;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Web;
+using LXGaming.FloodAnalytics.Services.Web.Utilities;
 using LXGaming.FloodAnalytics.Tests.Configuration;
 using LXGaming.FloodAnalytics.Tests.Services.Quartz;
 using LXGaming.FloodAnalytics.Tests.Services.Web;
@@ -38,7 +38,6 @@ public static class Extensions {
 
         return services
             .AddConfiguration()
-            .AddLogging()
-            .AddService<TestWebService>();
+            .AddWebService<WebService, TestWebService>();
     }
 }

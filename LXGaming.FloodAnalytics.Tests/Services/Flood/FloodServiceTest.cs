@@ -14,6 +14,7 @@ public class FloodServiceTest : ServiceTestBase {
 
     public FloodServiceTest() {
         Services.AddService<FloodService>();
+        Services.AddLogging();
         Services.AddSchedulerFactory();
         Services.AddWebService();
     }

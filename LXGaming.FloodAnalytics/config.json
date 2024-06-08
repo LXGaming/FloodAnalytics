@@ -15,6 +15,7 @@
     "maxConcurrency": 2
   },
   "web": {
+    "pooledConnectionLifetime": 300000,
     "timeout": 100000
   }
 }

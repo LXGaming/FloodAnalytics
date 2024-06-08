@@ -1,60 +1,45 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using LXGaming.Common.Hosting;
-using LXGaming.Common.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
-using LXGaming.FloodAnalytics.Configuration.Categories;
 using LXGaming.FloodAnalytics.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace LXGaming.FloodAnalytics.Services.Web;
 
-[Service(ServiceLifetime.Singleton)]
-public class WebService(IConfiguration configuration, ILogger<WebService> logger) : IHostedService {
+public class WebService(IConfiguration configuration, JsonSerializerOptions jsonSerializerOptions) {
 
-    public JsonSerializerOptions JsonSerializerOptions { get; private set; } = null!;
-    protected IProvider<Config> Config { get; } = configuration.GetRequiredProvider<IProvider<Config>>();
-    protected ILogger<WebService> Logger { get; } = logger;
+    public JsonSerializerOptions JsonSerializerOptions { get; } = jsonSerializerOptions;
 
-    public virtual Task StartAsync(CancellationToken cancellationToken) {
-        var webCategory = Config.Value?.WebCategory;
-        if (webCategory == null) {
+    private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
+
+    public virtual HttpClient CreateClient(HttpMessageHandler handler) {
+        var category = _config.Value?.WebCategory;
+        if (category == null) {
             throw new InvalidOperationException("WebCategory is unavailable");
         }
 
-        if (webCategory.Timeout <= 0) {
-            Logger.LogWarning("Timeout is out of bounds. Resetting to {Value}", WebCategory.DefaultTimeout);
-            webCategory.Timeout = WebCategory.DefaultTimeout;
+        var client = new HttpClient(handler);
+        client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", Constants.Application.UserAgent);
+        client.Timeout = TimeSpan.FromMilliseconds(category.Timeout);
+        return client;
+    }
+
+    public SocketsHttpHandler CreateHandler() {
+        var category = _config.Value?.WebCategory;
+        if (category == null) {
+            throw new InvalidOperationException("WebCategory is unavailable");
         }
 
-        JsonSerializerOptions = new JsonSerializerOptions {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-                .WithOrderPropertiesModifier()
-                .WithRequiredPropertiesModifier()
+        return new SocketsHttpHandler {
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMilliseconds(category.PooledConnectionLifetime),
+            UseCookies = false
         };
-
-        return Task.CompletedTask;
     }
 
-    public virtual Task StopAsync(CancellationToken cancellationToken) {
-        return Task.CompletedTask;
-    }
-
-    public virtual HttpClient CreateHttpClient(HttpMessageHandler handler) {
-        var httpClient = new HttpClient(handler) {
-            Timeout = TimeSpan.FromMilliseconds(Config.Value?.WebCategory.Timeout ?? WebCategory.DefaultTimeout)
-        };
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", Constants.Application.UserAgent);
-        return httpClient;
-    }
-
-    public virtual async Task<T> DeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default) {
+    public virtual async Task<T> DeserializeAsync<T>(HttpResponseMessage response,
+        CancellationToken cancellationToken = default) {
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         return await JsonSerializer.DeserializeAsync<T>(stream, JsonSerializerOptions, cancellationToken)
                ?? throw new JsonException($"Failed to deserialize {nameof(T)}");
