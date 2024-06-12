@@ -46,13 +46,13 @@ try {
 
     builder.ConfigureServices(services => {
         services.Configure<QuartzOptions>(options => {
-            var quartzCategory = config.Value!.QuartzCategory;
-            if (quartzCategory.MaxConcurrency <= 0) {
+            var category = config.Value!.QuartzCategory;
+            if (category.MaxConcurrency <= 0) {
                 Log.Warning("MaxConcurrency is out of bounds. Resetting to {Value}", QuartzCategory.DefaultMaxConcurrency);
-                quartzCategory.MaxConcurrency = QuartzCategory.DefaultMaxConcurrency;
+                category.MaxConcurrency = QuartzCategory.DefaultMaxConcurrency;
             }
 
-            options.Add("quartz.threadPool.maxConcurrency", $"{quartzCategory.MaxConcurrency}");
+            options.Add("quartz.threadPool.maxConcurrency", $"{category.MaxConcurrency}");
         });
         services.AddQuartz();
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);

@@ -27,13 +27,13 @@ public class FloodService(
     private bool _disposed;
 
     public async Task StartAsync(CancellationToken cancellationToken) {
-        var floodCategory = _config.Value?.FloodCategory;
-        if (floodCategory == null) {
+        var category = _config.Value?.FloodCategory;
+        if (category == null) {
             logger.LogWarning("FloodCategory is unavailable");
             return;
         }
 
-        if (string.IsNullOrEmpty(floodCategory.Address)) {
+        if (string.IsNullOrEmpty(category.Address)) {
             logger.LogWarning("Flood address has not been configured");
             return;
         }
@@ -43,7 +43,7 @@ public class FloodService(
         handler.UseCookies = true;
 
         _httpClient = webService.CreateClient(handler);
-        _httpClient.BaseAddress = new Uri(floodCategory.Address);
+        _httpClient.BaseAddress = new Uri(category.Address);
 
         var reconnectDelay = DefaultReconnectDelay;
         while (true) {
@@ -70,11 +70,11 @@ public class FloodService(
             }
         }
 
-        if (!string.IsNullOrEmpty(floodCategory.Schedule)) {
+        if (!string.IsNullOrEmpty(category.Schedule)) {
             var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
             await scheduler.ScheduleJob(
                 JobBuilder.Create<FloodJob>().WithIdentity(FloodJob.JobKey).Build(),
-                TriggerBuilder.Create().WithCronSchedule(floodCategory.Schedule).Build(),
+                TriggerBuilder.Create().WithCronSchedule(category.Schedule).Build(),
                 cancellationToken);
         } else {
             logger.LogWarning("Flood schedule has not been configured");
