@@ -9,36 +9,62 @@ using Microsoft.Extensions.Hosting;
 namespace LXGaming.FloodAnalytics.Services.InfluxDb;
 
 [Service(ServiceLifetime.Singleton)]
-public class InfluxDbService(IConfiguration configuration) : IHostedService {
+public class InfluxDbService(IConfiguration configuration) : IHostedService, IDisposable {
 
-    public InfluxDBClient Client { get; private set; } = null!;
-    public string? Bucket { get; private set; }
-    public string? Organization { get; private set; }
+    public InfluxDBClient? Client { get; private set; }
 
     private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
+    private bool _disposed;
 
     public Task StartAsync(CancellationToken cancellationToken) {
-        var influxDbCategory = _config.Value?.InfluxDbCategory;
-        if (influxDbCategory == null) {
+        var category = _config.Value?.InfluxDbCategory;
+        if (category == null) {
             throw new InvalidOperationException("InfluxDbCategory is unavailable");
         }
 
-        if (string.IsNullOrEmpty(influxDbCategory.Url)) {
+        if (string.IsNullOrEmpty(category.Url)) {
             throw new InvalidOperationException("Url has not been configured for InfluxDb");
         }
 
-        if (string.IsNullOrEmpty(influxDbCategory.Token)) {
+        if (string.IsNullOrEmpty(category.Token)) {
             throw new InvalidOperationException("Token has not been configured for InfluxDb");
         }
 
-        Client = new InfluxDBClient(influxDbCategory.Url, influxDbCategory.Token);
-        Bucket = influxDbCategory.Bucket;
-        Organization = influxDbCategory.Organization;
+        if (string.IsNullOrEmpty(category.Bucket)) {
+            throw new InvalidOperationException("Bucket has not been configured for InfluxDb");
+        }
+
+        if (string.IsNullOrEmpty(category.Organization)) {
+            throw new InvalidOperationException("Organization has not been configured for InfluxDb");
+        }
+
+        Client ??= new InfluxDBClient(new InfluxDBClientOptions(category.Url) {
+            Bucket = category.Bucket,
+            Org = category.Organization,
+            Token = category.Token
+        });
+
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken) {
-        Client.Dispose();
         return Task.CompletedTask;
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing) {
+        if (_disposed) {
+            return;
+        }
+
+        if (disposing) {
+            Client?.Dispose();
+        }
+
+        _disposed = true;
     }
 }

@@ -15,6 +15,10 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
     public static readonly JobKey JobKey = JobKey.Create(nameof(FloodJob));
 
     public async Task Execute(IJobExecutionContext context) {
+        if (influxDbService.Client == null) {
+            throw new InvalidOperationException("InfluxDBClient is unavailable");
+        }
+
         TorrentListSummary torrentListSummary;
         try {
             torrentListSummary = await floodService.EnsureAuthenticatedAsync(floodService.GetTorrentsAsync);
@@ -33,7 +37,7 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
 
         var points = new List<PointData>(torrentListSummary.Torrents.Count);
         foreach (var (_, value) in torrentListSummary.Torrents) {
-            var point = PointData
+            var point = PointData.Builder
                 .Measurement("torrent")
                 .Tag("id", value.Hash)
                 .Tag("name", value.Name)
@@ -63,11 +67,12 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
                 .Field("size_bytes", value.SizeBytes)
                 .Field("up_rate", value.UpRate)
                 .Field("up_total", value.UpTotal)
-                .Timestamp(context.ScheduledFireTimeUtc ?? context.FireTimeUtc, WritePrecision.S);
+                .Timestamp(context.ScheduledFireTimeUtc ?? context.FireTimeUtc, WritePrecision.S)
+                .ToPointData();
 
             points.Add(point);
         }
 
-        await influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points, influxDbService.Bucket, influxDbService.Organization);
+        await influxDbService.Client.GetWriteApiAsync().WritePointsAsync(points);
     }
 }
