@@ -4,14 +4,21 @@ using NUnit.Framework;
 
 namespace LXGaming.FloodAnalytics.Tests.Services;
 
-public abstract class ServiceTestBase {
+public abstract class ServiceTestBase : IDisposable {
 
-    protected readonly IServiceCollection Services = new ServiceCollection();
-    protected ServiceProvider Provider = null!;
+    protected IServiceCollection Services { get; }
+    protected IServiceProvider Provider => _serviceProvider.Value;
+
+    private readonly Lazy<ServiceProvider> _serviceProvider;
+    private bool _disposed;
+
+    protected ServiceTestBase() {
+        Services = new ServiceCollection();
+        _serviceProvider = new Lazy<ServiceProvider>(BuildServiceProvider);
+    }
 
     [OneTimeSetUp]
     public async Task StartAsync() {
-        Provider = Services.BuildServiceProvider();
         foreach (var service in Provider.GetServices<IHostedService>()) {
             await service.StartAsync(CancellationToken.None);
         }
@@ -22,7 +29,29 @@ public abstract class ServiceTestBase {
         foreach (var service in Provider.GetServices<IHostedService>()) {
             await service.StopAsync(CancellationToken.None);
         }
+    }
 
-        await Provider.DisposeAsync();
+    private ServiceProvider BuildServiceProvider() {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return Services.BuildServiceProvider();
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing) {
+        if (_disposed) {
+            return;
+        }
+
+        if (disposing) {
+            if (_serviceProvider.IsValueCreated) {
+                _serviceProvider.Value.Dispose();
+            }
+        }
+
+        _disposed = true;
     }
 }
