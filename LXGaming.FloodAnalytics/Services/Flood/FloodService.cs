@@ -45,6 +45,12 @@ public class FloodService(
         _httpClient = webService.CreateClient(handler);
         _httpClient.BaseAddress = new Uri(category.Address);
 
+        foreach (var pair in category.Headers) {
+            if (!_httpClient.DefaultRequestHeaders.TryAddWithoutValidation(pair.Key, pair.Value)) {
+                logger.LogWarning("Failed to add {Header} header to Flood", pair.Key);
+            }
+        }
+
         var reconnectDelay = DefaultReconnectDelay;
         while (true) {
             try {
