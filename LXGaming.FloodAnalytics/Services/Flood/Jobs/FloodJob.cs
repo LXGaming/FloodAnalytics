@@ -41,7 +41,7 @@ public class FloodJob(FloodService floodService, InfluxDbService influxDbService
                 .Measurement("torrent")
                 .Tag("id", value.Hash)
                 .Tag("name", value.Name)
-                .Tag("trackers", string.Join(',', value.TrackerUris))
+                .Tag("trackers", string.Join(',', value.TrackerUris.Order()))
                 .Field("bytes_done", value.BytesDone)
                 .Field("down_rate", value.DownRate)
                 .Field("down_total", value.DownTotal)
