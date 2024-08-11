@@ -32,7 +32,7 @@ public record TorrentProperties {
     public long DownTotal { get; init; }
 
     [JsonPropertyName("eta")]
-    public decimal Eta { get; init; }
+    public double Eta { get; init; }
 
     [JsonPropertyName("hash")]
     public required string Hash { get; init; }
@@ -59,13 +59,13 @@ public record TorrentProperties {
     public int PeersTotal { get; init; }
 
     [JsonPropertyName("percentComplete")]
-    public decimal PercentComplete { get; init; }
+    public double PercentComplete { get; init; }
 
     [JsonPropertyName("priority")]
     public TorrentPriority Priority { get; init; }
 
     [JsonPropertyName("ratio")]
-    public decimal Ratio { get; init; }
+    public double Ratio { get; init; }
 
     [JsonPropertyName("seedsConnected")]
     public int SeedsConnected { get; init; }
