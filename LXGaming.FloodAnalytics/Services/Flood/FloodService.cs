@@ -92,21 +92,24 @@ public class FloodService(
     }
 
     public async Task<T> EnsureAuthenticatedAsync<T>(Func<Task<T>> task) {
+        Exception exception;
         try {
             return await task();
         } catch (HttpRequestException ex) {
             if (ex is not { StatusCode: HttpStatusCode.Unauthorized }) {
                 throw;
             }
+
+            exception = ex;
         }
 
         var authenticate = await AuthenticateAsync();
-        if (authenticate.Success) {
-            logger.LogInformation("Reconnected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
-        } else {
+        if (!authenticate.Success) {
             logger.LogWarning("Reconnection failed!");
+            throw exception;
         }
 
+        logger.LogInformation("Reconnected to Flood as {Username} ({Level})", authenticate.Username, authenticate.Level);
         return await task();
     }
 
