@@ -13,8 +13,8 @@ public class FloodCategory {
     [JsonPropertyName("password")]
     public string Password { get; init; } = "";
 
-    [JsonPropertyName("headers")]
-    public Dictionary<string, string> Headers { get; init; } = new();
+    [JsonPropertyName("additionalHeaders")]
+    public Dictionary<string, string> AdditionalHeaders { get; init; } = new();
 
     [JsonPropertyName("schedule")]
     public string Schedule { get; init; } = "0 */10 * * * ?";

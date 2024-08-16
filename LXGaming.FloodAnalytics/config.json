@@ -3,7 +3,7 @@
     "address": "https://flood.example.com",
     "username": "user",
     "password": "password",
-    "headers": {},
+    "additionalHeaders": {},
     "schedule": "0 */10 * * * ?"
   },
   "influxDb": {
