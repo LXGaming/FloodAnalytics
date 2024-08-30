@@ -124,7 +124,7 @@ public class FloodService(
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/authenticate");
-        request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string?> {
             { "username", category.Username },
             { "password", category.Password }
         });
