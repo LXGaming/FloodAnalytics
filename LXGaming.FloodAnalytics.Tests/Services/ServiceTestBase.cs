@@ -19,15 +19,35 @@ public abstract class ServiceTestBase : IDisposable {
 
     [OneTimeSetUp]
     public async Task StartAsync() {
-        foreach (var service in Provider.GetServices<IHostedService>()) {
-            await service.StartAsync(CancellationToken.None);
+        foreach (var hostedService in Provider.GetServices<IHostedService>()) {
+            var hostedLifecycleService = hostedService as IHostedLifecycleService;
+
+            if (hostedLifecycleService != null) {
+                await hostedLifecycleService.StartingAsync(CancellationToken.None);
+            }
+
+            await hostedService.StartAsync(CancellationToken.None);
+
+            if (hostedLifecycleService != null) {
+                await hostedLifecycleService.StartedAsync(CancellationToken.None);
+            }
         }
     }
 
     [OneTimeTearDown]
     public async Task StopAsync() {
-        foreach (var service in Provider.GetServices<IHostedService>()) {
-            await service.StopAsync(CancellationToken.None);
+        foreach (var hostedService in Provider.GetServices<IHostedService>()) {
+            var hostedLifecycleService = hostedService as IHostedLifecycleService;
+
+            if (hostedLifecycleService != null) {
+                await hostedLifecycleService.StoppingAsync(CancellationToken.None);
+            }
+
+            await hostedService.StopAsync(CancellationToken.None);
+
+            if (hostedLifecycleService != null) {
+                await hostedLifecycleService.StoppedAsync(CancellationToken.None);
+            }
         }
     }
 
