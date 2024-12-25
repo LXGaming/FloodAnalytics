@@ -42,6 +42,6 @@ public class WebService(IConfiguration configuration, JsonSerializerOptions json
         CancellationToken cancellationToken = default) {
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         return await JsonSerializer.DeserializeAsync<T>(stream, JsonSerializerOptions, cancellationToken)
-               ?? throw new JsonException($"Failed to deserialize {nameof(T)}");
+               ?? throw new JsonException($"Failed to deserialize {typeof(T).Name}");
     }
 }
