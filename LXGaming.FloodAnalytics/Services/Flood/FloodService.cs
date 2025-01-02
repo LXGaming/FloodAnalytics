@@ -1,11 +1,11 @@
 ﻿using System.Net;
-using LXGaming.Common.Hosting;
 using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood.Jobs;
 using LXGaming.FloodAnalytics.Services.Flood.Models;
 using LXGaming.FloodAnalytics.Services.Web;
+using LXGaming.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

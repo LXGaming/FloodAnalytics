@@ -1,9 +1,9 @@
-﻿using LXGaming.Common.Hosting;
-using LXGaming.Configuration;
+﻿using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood;
 using LXGaming.FloodAnalytics.Tests.Utilities;
+using LXGaming.Hosting.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 

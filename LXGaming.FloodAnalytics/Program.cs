@@ -1,7 +1,5 @@
 ﻿using System.IO.Compression;
-using System.Reflection;
 using System.Text.Json;
-using LXGaming.Common.Hosting;
 using LXGaming.Common.Serilog;
 using LXGaming.Configuration;
 using LXGaming.Configuration.File.Json;
@@ -9,6 +7,7 @@ using LXGaming.Configuration.Hosting;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Configuration.Categories;
 using LXGaming.FloodAnalytics.Services.Web.Utilities;
+using LXGaming.Hosting.Generated;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Quartz;
@@ -58,7 +57,7 @@ try {
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         services.AddWebService();
-        services.AddAllServices(Assembly.GetExecutingAssembly());
+        services.AddAllServices();
     });
 
     var host = builder.Build();

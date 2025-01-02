@@ -1,8 +1,8 @@
 ﻿using InfluxDB.Client;
-using LXGaming.Common.Hosting;
 using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
+using LXGaming.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
