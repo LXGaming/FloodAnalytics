@@ -9,7 +9,7 @@
 - [InfluxDB](https://www.influxdata.com/)
 
 ## Usage
-### docker-compose
+### Docker Compose
 Download and use [config.json](https://raw.githubusercontent.com/LXGaming/FloodAnalytics/main/LXGaming.FloodAnalytics/config.json)
 ```yaml
 services:
