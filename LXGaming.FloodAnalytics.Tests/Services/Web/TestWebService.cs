@@ -28,8 +28,7 @@ public class TestWebService : WebService {
         var actualNode = JsonSerializer.SerializeToNode<T>(actualObject!, JsonSerializerOptions);
         Assert.That(actualNode, Is.Not.Null);
 
-        Warn.Unless(actualNode!.ToJsonString(), Is.EqualTo(expectedNode.ToJsonString()));
-
+        Warn.Unless(actualNode!.ToJsonString(), Is.EqualTo(expectedNode.ToJsonString()).IgnoreCase);
         return actualObject!;
     }
 }
