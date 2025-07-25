@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood.Jobs;
@@ -15,19 +14,18 @@ namespace LXGaming.FloodAnalytics.Services.Flood;
 
 [Service(ServiceLifetime.Singleton)]
 public class FloodService(
-    IConfiguration configuration,
+    IConfiguration<Config> configuration,
     ILogger<FloodService> logger,
     ISchedulerFactory schedulerFactory,
     WebService webService) : IHostedService, IDisposable {
 
     private const uint DefaultReconnectDelay = 2;
     private const uint DefaultMaximumReconnectDelay = 300; // 5 Minutes
-    private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
     private HttpClient? _httpClient;
     private bool _disposed;
 
     public async Task StartAsync(CancellationToken cancellationToken) {
-        var category = _config.Value?.FloodCategory;
+        var category = configuration.Value?.FloodCategory;
         if (category == null) {
             logger.LogWarning("FloodCategory is unavailable");
             return;
@@ -118,7 +116,7 @@ public class FloodService(
             throw new InvalidOperationException("HttpClient is unavailable");
         }
 
-        var category = _config.Value?.FloodCategory;
+        var category = configuration.Value?.FloodCategory;
         if (category == null) {
             throw new InvalidOperationException("FloodCategory is unavailable");
         }

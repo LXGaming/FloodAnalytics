@@ -18,9 +18,7 @@ public static class Extensions {
             throw new InvalidOperationException("Configuration is already registered");
         }
 
-        var configuration = new DefaultConfiguration();
-        configuration.Register(nameof(Config), new TestProvider<Config>());
-        return services.AddConfiguration(configuration);
+        return services.AddConfiguration(new TestConfiguration<Config>());
     }
 
     public static IServiceCollection AddSchedulerFactory(this IServiceCollection services) {

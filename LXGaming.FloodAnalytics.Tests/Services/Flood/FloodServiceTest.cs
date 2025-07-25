@@ -1,5 +1,4 @@
-﻿using LXGaming.Configuration;
-using LXGaming.Configuration.Generic;
+﻿using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Flood;
 using LXGaming.FloodAnalytics.Tests.Utilities;
@@ -21,8 +20,8 @@ public class FloodServiceTest : ServiceTestBase {
 
     [OneTimeSetUp]
     public void Setup() {
-        var config = Provider.GetRequiredService<IConfiguration>().GetRequiredProvider<IProvider<Config>>();
-        var category = config.Value?.FloodCategory;
+        var configuration = Provider.GetRequiredService<IConfiguration<Config>>();
+        var category = configuration.Value?.FloodCategory;
         if (string.IsNullOrEmpty(category?.Address)) {
             Assert.Ignore("Flood address has not been configured");
         }

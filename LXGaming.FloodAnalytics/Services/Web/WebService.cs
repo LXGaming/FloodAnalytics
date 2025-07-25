@@ -1,20 +1,17 @@
 ﻿using System.Net;
 using System.Text.Json;
-using LXGaming.Configuration;
 using LXGaming.Configuration.Generic;
 using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Utilities;
 
 namespace LXGaming.FloodAnalytics.Services.Web;
 
-public class WebService(IConfiguration configuration, JsonSerializerOptions jsonSerializerOptions) {
+public class WebService(IConfiguration<Config> configuration, JsonSerializerOptions jsonSerializerOptions) {
 
     public JsonSerializerOptions JsonSerializerOptions { get; } = jsonSerializerOptions;
 
-    private readonly IProvider<Config> _config = configuration.GetRequiredProvider<IProvider<Config>>();
-
     public virtual HttpClient CreateClient(HttpMessageHandler handler) {
-        var category = _config.Value?.WebCategory;
+        var category = configuration.Value?.WebCategory;
         if (category == null) {
             throw new InvalidOperationException("WebCategory is unavailable");
         }
@@ -26,7 +23,7 @@ public class WebService(IConfiguration configuration, JsonSerializerOptions json
     }
 
     public SocketsHttpHandler CreateHandler() {
-        var category = _config.Value?.WebCategory;
+        var category = configuration.Value?.WebCategory;
         if (category == null) {
             throw new InvalidOperationException("WebCategory is unavailable");
         }

@@ -1,7 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using LXGaming.Configuration;
+using LXGaming.Configuration.Generic;
+using LXGaming.FloodAnalytics.Configuration;
 using LXGaming.FloodAnalytics.Services.Web;
 using NUnit.Framework;
 
@@ -9,7 +10,7 @@ namespace LXGaming.FloodAnalytics.Tests.Services.Web;
 
 public class TestWebService : WebService {
 
-    public TestWebService(IConfiguration configuration, JsonSerializerOptions jsonSerializerOptions) : base(
+    public TestWebService(IConfiguration<Config> configuration, JsonSerializerOptions jsonSerializerOptions) : base(
         configuration, jsonSerializerOptions) {
         jsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
     }
