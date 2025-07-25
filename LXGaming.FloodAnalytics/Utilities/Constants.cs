@@ -8,8 +8,8 @@ public static class Constants {
     public static class Application {
 
         public const string Name = "FloodAnalytics";
-        public const string Authors = "LX_Gaming";
-        public const string Website = "https://lxgaming.github.io/";
+        public const string Authors = "Alex Thomson";
+        public const string Website = "https://lxgaming.me/";
 
         public static readonly string Version = AssemblyUtils.GetVersion(Assembly.GetExecutingAssembly(), "Unknown");
         public static readonly string UserAgent = $"{Name}/{Version} (+{Website})";
