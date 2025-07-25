@@ -20,7 +20,7 @@ public class WebService(IConfiguration configuration, JsonSerializerOptions json
         }
 
         var client = new HttpClient(handler);
-        client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", Constants.Application.UserAgent);
+        client.DefaultRequestHeaders.Add("User-Agent", Constants.Application.UserAgent);
         client.Timeout = TimeSpan.FromMilliseconds(category.Timeout);
         return client;
     }
